@@ -1,16 +1,4 @@
 #!/bin/bash
-
-
-while true; do
-    #Escolha do Usuario
-
-    echo "1. Definir Diretório dos Logs(Padrão /var/log)"
-    echo "2. Dias para manter os arquivos"
-    echo "3. "
-    echo "4. Executar Backup dos Logs"
-    echo "5. Sair"
-    echo ""
-#!/bin/bash
 dir_logs="/var/log"
 
 
@@ -57,12 +45,4 @@ while true; do
 
 
     esac
-done
-
-
-
-
-
-
-
 done
