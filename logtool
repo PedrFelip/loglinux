@@ -10,7 +10,54 @@ while true; do
     echo "4. Executar Backup dos Logs"
     echo "5. Sair"
     echo ""
+#!/bin/bash
+dir_logs="/var/log"
 
+
+while true; do
+    #Escolha do Usuario
+
+    echo "1. Definir diretório para os logs (padrão: /var/log)"
+    echo "2. Definir quantidade de dias para manter os logs (padrão: 7 dias)"
+    echo "3. Definir quantidade de dias para manter os backups (padrão: 30 dias)"
+    echo "4. Definir diretório para armazenar os backups (padrão: $HOME/backuplogs)"
+    echo "5. Executar backup dos logs agora"
+    echo "6. Sair"
+    echo ""
+
+    read -r -p "Escolha Uma Opção [1-6]: " escolha
+
+    case $escolha in
+
+        1)
+            read -r -p "Digite o diretorio aonde está armazenado os Logs: " dir_logs
+            if ! -d "$log_dir"; then
+                echo "esse diretorio $dir_log não existe."
+                echo "Insira um diretorio valido voltando para o padrão"
+                dir_log="/var/log"
+            else
+                echo "Diretorio Atualizado para $dir_logs"
+            
+            fi
+            ;;
+
+    
+    
+    
+        6)
+            echo "Saindo..."
+            break
+            ;;
+        *)
+            echo "Opção inválida. Por favor, escolha uma opção de 1 a 6."
+            ;;
+
+
+
+
+
+    esac
+done
 
 
 
