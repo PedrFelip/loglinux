@@ -1,8 +1,12 @@
 #!/bin/bash
 dir_logs="/var/log"
+keep_log=7
+backup_logs=30
+dir_backup="$HOME/backuplogs"
 
 
 while true; do
+    
     #Escolha do Usuario
 
     echo "1. Definir diretório para os logs (padrão: /var/log)"
@@ -28,6 +32,9 @@ while true; do
             
             fi
             ;;
+        2)
+            read -r -p "Definir quantidade de dias para manter os logs (Recomendamos 7, para melhor funcionamento)" keep_logs 
+
 
     
     
