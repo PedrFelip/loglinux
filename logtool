@@ -1,4 +1,5 @@
 #!/bin/bash
+
 dir_logs="/var/log"
 keep_log=7
 backup_logs=30
@@ -8,7 +9,6 @@ dir_backup="$HOME/backuplogs"
 while true; do
     
     #Escolha do Usuario
-
     echo "1. Definir diretório para os logs (padrão: /var/log)"
     echo "2. Definir quantidade de dias para manter os logs (padrão: 7 dias)"
     echo "3. Definir quantidade de dias para manter os backups (padrão: 30 dias)"
@@ -22,23 +22,49 @@ while true; do
     case $escolha in
 
         1)
-            read -r -p "Digite o diretorio aonde está armazenado os Logs: " dir_logs
-            if ! -d "$log_dir"; then
-                echo "esse diretorio $dir_log não existe."
-                echo "Insira um diretorio valido voltando para o padrão"
-                dir_log="/var/log"
+            read -r -p "Digite o diretório onde estão armazenados os logs: " dir_logs
+            if [ ! -d "$dir_logs" ]; then
+                echo "Esse diretório $dir_logs não existe."
+                echo "Voltando para o padrão: /var/log"
+                dir_logs="/var/log"
             else
-                echo "Diretorio Atualizado para $dir_logs"
-            
+                echo "Diretório atualizado para $dir_logs"
             fi
             ;;
         2)
-            read -r -p "Definir quantidade de dias para manter os logs (Recomendamos 7, para melhor funcionamento)" keep_logs 
+            read -r -p "Definir quantidade de dias para manter os logs (recomendado: 7 dias): " keep_log
+            echo "Dias para manter os logs atualizado para $keep_log"
+            ;;
 
+        3)
+            read -r -p "Definir quantidade de dias para backup dos logs (recomendado: 30 dias): " backup_logs
+            echo "Dias para manter os backups atualizado para $backup_logs"
+            ;;
+        4)
+            read -r -p "Digite o diretório onde serão armazenados os backups: " dir_backup
+            echo "Diretório de backup atualizado para $dir_backup"
+            ;;
+        5)
+            #Execução do Script
+            #find [path] [options] [expression]
+            
+            echo "Vamos começar o Script..."
 
-    
-    
-    
+            sudo find "$dir_logs" -type f -mtime +$backup_logs -exec rm -f {} \;            
+            sleep 5
+            
+            # Criar diretório de backup, se não existir
+            mkdir -p "$dir_backup"            
+            
+            sudo log_files=$(find "$dir_logs" -type f -mtime +$keep_log)
+
+            if [ -n "$log_files" ]; then
+                sudo tar -czvf "$dir_backup/logs_$(date +%d%m%Y).tar.gz" $log_files
+                echo "Backup criado com sucesso!"
+            else
+                echo "Nenhum arquivo de log antigo para compactar."
+            fi
+            ;;
         6)
             echo "Saindo..."
             break
@@ -46,10 +72,5 @@ while true; do
         *)
             echo "Opção inválida. Por favor, escolha uma opção de 1 a 6."
             ;;
-
-
-
-
-
     esac
 done
