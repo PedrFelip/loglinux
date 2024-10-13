@@ -1,76 +1,90 @@
 #!/bin/bash
 
-dir_logs="/var/log"
-keep_log=7
-backup_logs=30
-dir_backup="$HOME/backuplogs"
+# Função para solicitar entrada do usuário com uma opção padrão
+prompt_for_input() {
+    read -r -p "$1 [$2]: " input
+    echo "${input:-$2}"
+}
 
+# Variáveis padrão
+log_dir="/var/log"
+days_to_keep_logs=7
+days_to_keep_backups=30
+backup_dir="$HOME/backuplogs"
 
+# Função para executar o processo de arquivamento de logs
+archive_logs() {
+    # Verificar se o diretório de logs foi configurado
+    if [ -z "$log_dir" ]; then
+        echo "Erro: Diretório de logs não está configurado. Por favor, configure-o primeiro."
+        return
+    fi
+
+    # Criar diretório de backup se não existir
+    mkdir -p "$backup_dir"
+    archive_dir="$backup_dir/archive"
+    mkdir -p "$archive_dir"
+
+    # Nome do arquivo de backup com timestamp
+    timestamp=$(date +"%Y%m%d_%H%M%S")
+    archive_file="$archive_dir/logs_archive_$timestamp.tar.gz"
+
+    # Encontrar e compactar logs mais antigos que o número de dias especificado
+    echo "Arquivando logs antigos..."
+    find "$log_dir" -type f -mtime +$days_to_keep_logs -print0 | tar -czvf "$archive_file" --null -T -
+    echo "Logs arquivados em $archive_file."
+
+    # Registrar o processo de arquivamento em um arquivo de log
+    echo "Logs arquivados em $archive_file em $(date)" >> "$archive_dir/archive_log.txt"
+
+    # Excluir logs antigos após o arquivamento
+    echo "Removendo logs mais antigos que $days_to_keep_logs dias..."
+    find "$log_dir" -type f -mtime +$days_to_keep_logs -exec rm -f {} \;
+
+    # Limpar backups mais antigos que o número de dias especificado
+    echo "Removendo backups mais antigos que $days_to_keep_backups dias..."
+    find "$archive_dir" -type f -name "*.tar.gz" -mtime +$days_to_keep_backups -exec rm -f {} \;
+    echo "Processo de arquivamento concluído."
+}
+
+# Loop principal interativo
 while true; do
-    
-    #Escolha do Usuario
-    echo "1. Definir diretório para os logs (padrão: /var/log)"
-    echo "2. Definir quantidade de dias para manter os logs (padrão: 7 dias)"
-    echo "3. Definir quantidade de dias para manter os backups (padrão: 30 dias)"
-    echo "4. Definir diretório para armazenar os backups (padrão: $HOME/backuplogs)"
-    echo "5. Executar backup dos logs agora"
-    echo "6. Sair"
+    echo "1. Definir Diretório dos Logs"
+    echo "2. Definir Quantidade de Dias para Manter os Logs"
+    echo "3. Definir Quantidade de Dias para Manter os Backups"
+    echo "4. Executar o Processo de Arquivamento de Logs"
+    echo "5. Sair"
     echo ""
 
-    read -r -p "Escolha Uma Opção [1-6]: " escolha
+    read -r -p "Escolha uma opção [1-5]: " choice
 
-    case $escolha in
-
+    case $choice in
         1)
-            read -r -p "Digite o diretório onde estão armazenados os logs: " dir_logs
-            if [ ! -d "$dir_logs" ]; then
-                echo "Esse diretório $dir_logs não existe."
-                echo "Voltando para o padrão: /var/log"
-                dir_logs="/var/log"
+            log_dir=$(prompt_for_input "Digite o diretório dos logs" "/var/log")
+            if [ ! -d "$log_dir" ]; then
+                echo "Erro: O diretório de logs não existe."
+                log_dir=""
             else
-                echo "Diretório atualizado para $dir_logs"
+                echo "Diretório de logs definido para: $log_dir"
             fi
             ;;
         2)
-            read -r -p "Definir quantidade de dias para manter os logs (recomendado: 7 dias): " keep_log
-            echo "Dias para manter os logs atualizado para $keep_log"
+            days_to_keep_logs=$(prompt_for_input "Quantos dias de logs você deseja manter?" "7")
+            echo "Logs mais antigos que $days_to_keep_logs dias serão arquivados."
             ;;
-
         3)
-            read -r -p "Definir quantidade de dias para backup dos logs (recomendado: 30 dias): " backup_logs
-            echo "Dias para manter os backups atualizado para $backup_logs"
+            days_to_keep_backups=$(prompt_for_input "Quantos dias de backup você deseja manter?" "30")
+            echo "Backups mais antigos que $days_to_keep_backups dias serão excluídos."
             ;;
         4)
-            read -r -p "Digite o diretório onde serão armazenados os backups: " dir_backup
-            echo "Diretório de backup atualizado para $dir_backup"
+            archive_logs
             ;;
         5)
-            #Execução do Script
-            #find [path] [options] [expression]
-            
-            echo "Vamos começar o Script..."
-
-            sudo find "$dir_logs" -type f -mtime +$backup_logs -exec rm -f {} \;            
-            sleep 5
-            
-            # Criar diretório de backup, se não existir
-            mkdir -p "$dir_backup"            
-            
-            log_files=$(sudo find "$dir_logs" -type f -mtime +$keep_log)
-
-            if [ -n "$log_files" ]; then
-                sudo tar -czvf "$dir_backup/logs_$(date +%d%m%Y).tar.gz" -C "$dir_logs" $(sudo find "$dir_logs" -type f -mtime +$keep_log)                
-                echo "Backup criado com sucesso!"
-            else
-                echo "Nenhum arquivo de log antigo para compactar."
-            fi
-            ;;
-        6)
             echo "Saindo..."
             break
             ;;
         *)
-            echo "Opção inválida. Por favor, escolha uma opção de 1 a 6."
+            echo "Opção inválida. Por favor, escolha uma opção entre 1 e 5."
             ;;
     esac
 done
