@@ -56,10 +56,10 @@ while true; do
             # Criar diretório de backup, se não existir
             mkdir -p "$dir_backup"            
             
-            sudo log_files=$(find "$dir_logs" -type f -mtime +$keep_log)
+            log_files=$(sudo find "$dir_logs" -type f -mtime +$keep_log)
 
             if [ -n "$log_files" ]; then
-                sudo tar -czvf "$dir_backup/logs_$(date +%d%m%Y).tar.gz" $log_files
+                sudo tar -czvf "$dir_backup/logs_$(date +%d%m%Y).tar.gz" -C "$dir_logs" $(sudo find "$dir_logs" -type f -mtime +$keep_log)                
                 echo "Backup criado com sucesso!"
             else
                 echo "Nenhum arquivo de log antigo para compactar."
