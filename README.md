@@ -13,3 +13,5 @@ Logs são registros de atividades e eventos que ocorrem em um sistema, aplicativ
 - [x] Depuração
 - [x] Monitoramento
 - [x] Segurança
+
+https://roadmap.sh/projects/log-archive-tool
